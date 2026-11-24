@@ -70,9 +70,8 @@ O enunciado pede 6 testes (2 positivos e 2 negativos) no mínimo.
 ## 4. Organização da suíte
 
 ```
-agenda-eletrecista-cypress/
+teste/
 ├── cypress.config.js           configuração: URL base, relatório, vídeo, credenciais de teste
-├── .github/workflows/e2e-dev.yml   GitHub Actions: roda a suíte contra o ambiente dev
 ├── cypress/
 │   ├── e2e/                    (pasta padrão do Cypress: os testes)
 │   │   ├── 01-autenticacao.cy.js      CT-01 a CT-04
@@ -99,14 +98,14 @@ agenda-eletrecista-cypress/
 | Testes positivos e negativos | Seção 3 |
 | Reutilização de código | `support/commands.js`: `loginComoSecretaria`, `criarCliente`, `criarEndereco`, `criarTipo`, `criarUsuario`, `cenarioBase`, `criarOs`, `chamarApi` |
 | Parametrização e testes orientados a dados | `fixtures/credenciais-invalidas.json` (CT-02) e `fixtures/telefones-invalidos.json` (CT-06) geram um teste por linha |
-| Setup e teardown | `beforeEach` com `cy.session` (login uma vez, reaproveitado). Dados montados por API em cada teste, com nomes e telefones únicos, então a ordem não importa. No modo local, o banco é apagado e recriado a cada `npm test` (setup), e o servidor é derrubado no fim (teardown) |
+| Setup e teardown | `beforeEach` com `cy.session` (login uma vez, reaproveitado). Dados montados por API em cada teste, com nomes e telefones únicos, então a ordem não importa. O banco é apagado e recriado a cada `npm test` (setup), e o servidor é derrubado no fim (teardown) |
 | Organização de suítes | Um arquivo por módulo, IDs no título (CT-xx) e marcação `[positivo]`/`[negativo]` |
-| Investigação de falhas | Seção 7 |
-| Relatórios e evidências | Seções 6 e 8 |
+| Investigação de falhas | Seção 6 |
+| Relatórios e evidências | Seção 7 |
 
 ## 6. Resultados da execução
 
-Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-reporter`. Execução local, com servidor de teste e banco SQLite novo. Resultado por teste:
+Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-reporter`. Servidor de teste com banco SQLite novo. Resultado por teste:
 
 | Teste | Tipo | Resultado |
 | --- | --- | --- |
@@ -156,7 +155,7 @@ A captura de tela da falha fica no relatório HTML e no artefato `evidencias-e2e
 
 ## 8. Evidências de execução
 
-Cada execução gera, dentro da pasta do projeto:
+Cada `npm test` gera, dentro de `teste/`:
 
 - `evidencias/execucao.txt`: log completo do terminal, com **ferramenta e versão** (Cypress), navegador, cada teste executado com ✓ (passou) ou número (falhou), resumo por arquivo e totais.
 - `relatorios/index.html`: relatório HTML do Mochawesome com todos os testes, status, duração, gráfico de aprovados e reprovados, e captura de tela embutida do teste que falhou. Abra no navegador.

@@ -1,6 +1,6 @@
 # agenda-eletrecista-cypress
 
-Testes automatizados E2E do sistema **Agenda do Eletricista**, feitos com **Cypress + JavaScript** para a disciplina de Teste de Software. O planejamento completo (cenários, justificativas, investigação de falha e evidências) está em [`RELATORIO.md`](RELATORIO.md).
+Testes automatizados E2E do sistema **Agenda do Eletricista** ([código do sistema](https://github.com/LuizKirsch/agenda-eletrecista)), feitos com **Cypress + JavaScript** para a disciplina de Teste de Software. O planejamento completo (cenários, justificativas, investigação de falha e evidências) está em [`RELATORIO.md`](RELATORIO.md).
 
 ## O que é testado
 
@@ -8,7 +8,7 @@ Testes automatizados E2E do sistema **Agenda do Eletricista**, feitos com **Cypr
 
 ## Rodar no GitHub Actions (ambiente dev)
 
-O workflow `.github/workflows/e2e-dev.yml` roda a suíte contra **https://agenda-dev.187-41-125-189.sslip.io** a cada push na `main`, em pull requests e sob demanda (aba **Actions > Testes E2E > Run workflow**).
+O workflow [`e2e-dev.yml`](.github/workflows/e2e-dev.yml) roda a suíte contra **https://agenda-dev.187-41-125-189.sslip.io** a cada push na `main`, em pull requests e sob demanda (aba **Actions > Testes E2E > Run workflow**).
 
 **Antes da primeira execução**, cadastre dois segredos em *Settings > Secrets and variables > Actions*:
 

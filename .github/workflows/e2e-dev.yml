@@ -1,0 +1,86 @@
+# Roda a suíte Cypress contra o ambiente dev (https://agenda-dev.187-41-125-189.sslip.io).
+# Precisa de dois segredos no repositório (Settings > Secrets and variables > Actions):
+#   DEV_SECRETARIA_LOGIN e DEV_SECRETARIA_SENHA (um usuário com perfil secretária do ambiente dev).
+name: Testes E2E (Cypress) no ambiente dev
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL do sistema a testar
+        required: false
+        default: https://agenda-dev.187-41-125-189.sslip.io
+
+# Um teste por vez: todos usam o mesmo ambiente dev e criam dados nele.
+concurrency:
+  group: e2e-dev
+  cancel-in-progress: false
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://agenda-dev.187-41-125-189.sslip.io' }}
+      SECRETARIA_LOGIN: ${{ secrets.DEV_SECRETARIA_LOGIN }}
+      SECRETARIA_SENHA: ${{ secrets.DEV_SECRETARIA_SENHA }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Conferir os segredos do ambiente dev
+        run: |
+          if [ -z "$SECRETARIA_LOGIN" ] || [ -z "$SECRETARIA_SENHA" ]; then
+            echo "::error::Cadastre os segredos DEV_SECRETARIA_LOGIN e DEV_SECRETARIA_SENHA em Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+
+      - name: Conferir que o ambiente dev responde
+        run: curl --fail --silent --show-error --retry 5 --retry-delay 5 --retry-all-errors "$BASE_URL/health"
+
+      - name: Instalar dependências
+        run: npm install --no-audit --no-fund
+
+      - name: Cache do binário do Cypress
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-${{ hashFiles('package.json') }}
+
+      - name: Rodar a suíte
+        run: |
+          mkdir -p evidencias
+          set -o pipefail
+          npx cypress run --browser chrome 2>&1 | tee evidencias/execucao.txt
+
+      - name: Resumo no painel da execução
+        if: always()
+        run: |
+          {
+            echo '### Resultado dos testes (Cypress)'
+            echo
+            echo "Ambiente: $BASE_URL"
+            echo
+            echo '```'
+            grep -E '^\s+(✓|[0-9]+\)) CT-|^\s+[0-9]+ (passing|failing)|✔|✖' evidencias/execucao.txt || echo 'sem resultados'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar evidências (relatório, vídeos, capturas, log)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evidencias-e2e
+          path: |
+            relatorios
+            cypress/videos
+            cypress/screenshots
+            evidencias
+          if-no-files-found: warn
