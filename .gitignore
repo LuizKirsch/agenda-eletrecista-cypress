@@ -1,0 +1,7 @@
+node_modules/
+.tmp/
+package-lock.json
+relatorios/
+evidencias/
+cypress/videos/
+cypress/screenshots/
