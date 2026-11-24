@@ -1,0 +1,4 @@
+[
+  { "caso": "senha errada para login existente", "login": "{secretaria}", "senha": "senha-errada-123" },
+  { "caso": "login inexistente", "login": "fulano.inexistente", "senha": "Teste@123" }
+]

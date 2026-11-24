@@ -1,0 +1,5 @@
+[
+  { "caso": "poucos dígitos (7)", "digitos": "5199999" },
+  { "caso": "DDD começando com zero", "digitos": "0199999999" },
+  { "caso": "segundo dígito do DDD zero", "digitos": "1099999999" }
+]
