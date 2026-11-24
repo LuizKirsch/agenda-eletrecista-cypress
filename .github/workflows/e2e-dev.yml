@@ -68,9 +68,7 @@ jobs:
             echo
             echo "Ambiente: $BASE_URL"
             echo
-            echo '```'
-            grep -E '^\s+(✓|[0-9]+\)) CT-|^\s+[0-9]+ (passing|failing)|✔|✖' evidencias/execucao.txt || echo 'sem resultados'
-            echo '```'
+            node scripts/resumo-actions.js evidencias/execucao.txt
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Guardar evidências (relatório, vídeos, capturas, log)
