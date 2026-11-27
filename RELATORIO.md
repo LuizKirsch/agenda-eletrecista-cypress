@@ -1,8 +1,8 @@
 # Relatório de testes automatizados: Agenda do Eletricista
 
-Disciplina de Teste de Software, segunda etapa. Este documento reúne o planejamento, a suíte automatizada, os resultados e a investigação de falha do sistema **Agenda do Eletricista** (projeto da disciplina de Tomada de Decisão). Data da execução: 24/11/2026.
+Disciplina de Teste de Software, segunda etapa. Este documento reúne o planejamento, a suíte automatizada, os resultados e a investigação de falha do sistema **Agenda do Eletricista** (projeto da disciplina de Tomada de Decisão). Primeira execução completa em 24/11/2026; correção do defeito encontrado em 26/11/2026.
 
-**Resumo:** 25 cenários planejados, 20 automatizados (23 execuções), **22 passaram e 1 falhou**. A falha é esperada: o teste CT-20 expõe um defeito real do sistema (BUG-01, seção 7).
+**Resumo:** 25 cenários planejados, 20 automatizados (23 execuções). Na primeira execução, **22 passaram e 1 falhou**: o teste CT-20 expôs um defeito real do sistema (BUG-01, seção 7). O defeito foi **corrigido no código do sistema** em 26/11 e a suíte foi executada de novo no GitHub Actions contra o ambiente dev já com a correção (seção 6).
 
 - **Sistema testado:** aplicação web de agenda e ordens de serviço (React + Express + Sequelize), sistema próprio, diferente dos usados em aula.
 - **Ferramenta principal:** opção B, **Cypress + JavaScript** (a aplicação inteira já é JavaScript, então teste e sistema compartilham linguagem e ferramentas).
@@ -49,7 +49,7 @@ Prioridade: **A** = risco alto (quebra o uso diário ou a segurança), **M** = m
 | CT-17 | Ordem de serviço | Fim igual ao início | API responde 400 "O horário de fim precisa ser depois do início (1ª atividade)." | M | **Sim** | Validação de entrada do servidor, fora do alcance do formulário |
 | CT-18 | Usuários | Secretária cadastra eletricista e ele consegue entrar | Usuário aparece na tabela e autentica de verdade | A | **Sim** | Teste ponta a ponta de dois módulos (usuários e acesso) |
 | CT-19 | Usuários | Eletricista tenta gerenciar usuários | Tela sem "Novo usuário", editar e excluir; API responde 403 | A | **Sim** | Autorização por perfil: falha aqui é falha de segurança |
-| CT-20 | Busca de cliente | Termo com números não pode trazer quem não corresponde | Só o cliente cujo nome contém o termo | M | **Sim** | Escrito depois de uma falha intermitente investigada (ver seção 7); hoje **falha** e documenta o defeito BUG-01 |
+| CT-20 | Busca de cliente | Termo com números não pode trazer quem não corresponde | Só o cliente cujo nome contém o termo | M | **Sim** | Escrito depois de uma falha intermitente investigada (ver seção 7). Falhou na primeira execução e documentou o defeito BUG-01, depois corrigido no sistema |
 | CN-01 | Agenda | Arrastar atividade para remarcar (P1.1) | Atividade muda de dia e hora | A | **Não** (nesta entrega) | O bloco usa `setPointerCapture`, que o Cypress não simula; exigiria eventos de ponteiro artificiais, frágeis. Cobertura parcial: a remarcação é uma chamada de API (`PATCH /atividades-os/:id/horario`), candidata a teste de API |
 | CN-02 | OS | Exportar OS em PDF | Nova aba com a OS pronta para imprimir | B | **Não** | Abre outra aba (`window.open`) e usa o diálogo de impressão do navegador, fora do alcance do Cypress; o ganho não paga o custo |
 | CN-03 | Orçamento | Montar, aceitar e gerar a OS (P4.1, P4.2) | OS criada com os horários escolhidos | A | **Não** (nesta entrega) | Fluxo longo, vários modais e cálculo de horários; ficou para uma segunda fase da suíte. O risco está parcialmente coberto por CT-13 a CT-17 |
@@ -70,8 +70,9 @@ O enunciado pede 6 testes (2 positivos e 2 negativos) no mínimo.
 ## 4. Organização da suíte
 
 ```
-teste/
+agenda-eletrecista-cypress/
 ├── cypress.config.js           configuração: URL base, relatório, vídeo, credenciais de teste
+├── .github/workflows/e2e-dev.yml   GitHub Actions: roda a suíte contra o ambiente dev
 ├── cypress/
 │   ├── e2e/                    (pasta padrão do Cypress: os testes)
 │   │   ├── 01-autenticacao.cy.js      CT-01 a CT-04
@@ -98,14 +99,16 @@ teste/
 | Testes positivos e negativos | Seção 3 |
 | Reutilização de código | `support/commands.js`: `loginComoSecretaria`, `criarCliente`, `criarEndereco`, `criarTipo`, `criarUsuario`, `cenarioBase`, `criarOs`, `chamarApi` |
 | Parametrização e testes orientados a dados | `fixtures/credenciais-invalidas.json` (CT-02) e `fixtures/telefones-invalidos.json` (CT-06) geram um teste por linha |
-| Setup e teardown | `beforeEach` com `cy.session` (login uma vez, reaproveitado). Dados montados por API em cada teste, com nomes e telefones únicos, então a ordem não importa. O banco é apagado e recriado a cada `npm test` (setup), e o servidor é derrubado no fim (teardown) |
+| Setup e teardown | `beforeEach` com `cy.session` (login uma vez, reaproveitado). Dados montados por API em cada teste, com nomes e telefones únicos, então a ordem não importa. No modo local, o banco é apagado e recriado a cada `npm test` (setup), e o servidor é derrubado no fim (teardown) |
 | Organização de suítes | Um arquivo por módulo, IDs no título (CT-xx) e marcação `[positivo]`/`[negativo]` |
-| Investigação de falhas | Seção 6 |
-| Relatórios e evidências | Seção 7 |
+| Investigação de falhas | Seção 7 |
+| Relatórios e evidências | Seções 6 e 8 |
 
 ## 6. Resultados da execução
 
-Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-reporter`. Servidor de teste com banco SQLite novo. Resultado por teste:
+Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-reporter`.
+
+**Primeira execução (24/11/2026, local, banco SQLite novo, antes da correção do sistema):**
 
 | Teste | Tipo | Resultado |
 | --- | --- | --- |
@@ -120,7 +123,7 @@ Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-report
 | CT-06 telefone inválido: 2º dígito do DDD zero | negativo | passou |
 | CT-07 telefone repetido | negativo | passou |
 | CT-08 busca por nome | positivo | passou |
-| CT-20 busca com números não traz clientes sem relação (BUG-01) | negativo | **falhou** |
+| CT-20 busca com números não traz clientes sem relação (BUG-01) | negativo | **falhou** (defeito do sistema) |
 | CT-09 criar tipo de atividade | positivo | passou |
 | CT-10 nome de tipo repetido | negativo | passou |
 | CT-11 duração fora do intervalo | negativo | passou |
@@ -133,7 +136,9 @@ Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-report
 | CT-18 cadastrar eletricista e entrar | positivo | passou |
 | CT-19 eletricista sem acesso a usuários | negativo | passou |
 
-**Totais:** 23 execuções, 22 passaram, 1 falhou, 0 puladas. Em quatro execuções seguidas o resultado foi o mesmo, o que mostra que os testes são estáveis e que a falha do CT-20 é reproduzível.
+**Totais:** 23 execuções, 22 passaram, 1 falhou, 0 puladas. Em quatro execuções seguidas o resultado foi o mesmo, o que mostra que os testes são estáveis e que a falha do CT-20 era reproduzível.
+
+**Depois da correção (26/11/2026):** o BUG-01 foi corrigido no sistema (seção 7) e o ambiente dev recebeu a correção por deploy automático. A suíte roda de novo no GitHub Actions contra o dev; o resultado de cada execução fica na aba **Actions** do repositório, com o resumo dos testes e o artefato `evidencias-e2e`. Nenhum teste foi alterado para acomodar a correção: o CT-20 continua igual e passa a testar o comportamento já corrigido.
 
 ## 7. Investigação de falha: BUG-01 (busca de cliente)
 
@@ -141,21 +146,21 @@ Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-report
 
 1. Registrei as requisições com `cy.intercept` e vi que a requisição de busca **voltava com a lista errada**: ora todos os clientes, ora o cliente certo mais um estranho.
 2. O texto do campo estava correto, então o problema não era digitação nem sincronização do teste.
-3. O nome de teste continha dígitos (`Busca…28nc`). Em `services/cliente.service.js`, a busca usa `soDigitos(busca) || busca` no filtro de telefone: os dígitos do termo viram `telefone LIKE '%28%'`, que casa com qualquer telefone com "28". Como todos os telefones de teste começam com `519`, um termo com "19" trazia a base inteira.
+3. O nome de teste continha dígitos (`Busca…28nc`). Em `services/cliente.service.js`, a busca usava `soDigitos(busca) || busca` no filtro de telefone: os dígitos do termo viravam `telefone LIKE '%28%'`, que casa com qualquer telefone com "28". Como todos os telefones de teste começam com `519`, um termo com "19" trazia a base inteira.
 
 **Veredito.** Defeito do sistema, não do teste. A RN 39 manda buscar por parte do nome ou do telefone, e "Apto 77" não é parte do telefone de ninguém.
 
 **Reprodução manual.** Cadastre "Maria Apto 77" e outro cliente com telefone `(51) 97777-0001`. Busque `Apto 77`: aparecem os dois.
 
-**Tratamento.** O CT-08 passou a usar um marcador sem dígitos (`marcaSemDigitos`), o que o torna estável e fiel à regra. O comportamento errado ganhou um teste próprio, o **CT-20**, que falha hoje e documenta o defeito. Evidência da falha: `Too many elements found. Found '2', expected '1'` (captura de tela e vídeo no relatório).
+**Tratamento nos testes.** O CT-08 passou a usar um marcador sem dígitos (`marcaSemDigitos`), o que o torna estável e fiel à regra. O comportamento errado ganhou um teste próprio, o **CT-20**, que falhou na primeira execução e documentou o defeito. Evidência da falha: `Too many elements found. Found '2', expected '1'` (captura de tela e vídeo no relatório).
 
-**Correção sugerida** (não aplicada, pois o código do sistema não era o alvo desta atividade): usar o filtro de dígitos só quando o termo inteiro parecer telefone, por exemplo `/^[\d\s()+-]+$/.test(busca)`.
+**Correção no sistema (26/11/2026).** Em `services/cliente.service.js`, os dígitos do termo só entram no filtro de telefone quando o termo inteiro parece um telefone (apenas dígitos, espaço, parênteses, `+` e `-`, conferido por `/^[\d\s()+-]+$/`). Um termo como "Apto 77" passa a buscar só no nome; "(51) 9777" e "51977" continuam achando pelo telefone. Commit `8f33034` na branch `develop` do repositório do sistema, publicado no ambiente dev pelo deploy automático.
 
-A captura de tela da falha fica no relatório HTML e no artefato `evidencias-e2e` da execução no Actions.
+A captura de tela da falha original fica no relatório HTML da primeira execução e, no GitHub Actions, no artefato `evidencias-e2e` de cada execução.
 
 ## 8. Evidências de execução
 
-Cada `npm test` gera, dentro de `teste/`:
+Cada execução gera:
 
 - `evidencias/execucao.txt`: log completo do terminal, com **ferramenta e versão** (Cypress), navegador, cada teste executado com ✓ (passou) ou número (falhou), resumo por arquivo e totais.
 - `relatorios/index.html`: relatório HTML do Mochawesome com todos os testes, status, duração, gráfico de aprovados e reprovados, e captura de tela embutida do teste que falhou. Abra no navegador.
@@ -167,4 +172,4 @@ Cada `npm test` gera, dentro de `teste/`:
 
 A suíte cobre os fluxos de maior risco do sistema: acesso e permissões, cadastro e validação de clientes, tipos de atividade e o ciclo de vida da OS com a regra de conflito de horário. Os testes são independentes entre si, montam seus próprios dados e conferem tanto a tela quanto o dado gravado.
 
-O trabalho de automação já encontrou um defeito real (BUG-01) que o uso manual não mostrou. Ficaram para uma próxima fase o fluxo de orçamento até a geração da OS e a remarcação por arrastar e soltar, que pedem uma abordagem própria (seção 2, CN-01 e CN-03).
+O trabalho de automação encontrou um defeito real (BUG-01) que o uso manual não mostrou, e o defeito foi corrigido no sistema. Ficaram para uma próxima fase o fluxo de orçamento até a geração da OS e a remarcação por arrastar e soltar, que pedem uma abordagem própria (seção 2, CN-01 e CN-03).
