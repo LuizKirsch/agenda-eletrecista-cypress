@@ -1,8 +1,8 @@
 # Relatório de testes automatizados: Agenda do Eletricista
 
-Disciplina de Teste de Software, segunda etapa. Este documento reúne o planejamento, a suíte automatizada, os resultados e a investigação de falha do sistema **Agenda do Eletricista** (projeto da disciplina de Tomada de Decisão). Primeira execução completa em 24/11/2026; correção do defeito encontrado em 26/11/2026.
+Disciplina de Teste de Software, segunda etapa. Este documento reúne o planejamento, a suíte automatizada, os resultados e a investigação de falha do sistema **Agenda do Eletricista** (projeto da disciplina de Tomada de Decisão). Primeira execução completa em 24/11/2026; correção do defeito encontrado em 26/11/2026; execução de confirmação em 27/11/2026.
 
-**Resumo:** 25 cenários planejados, 20 automatizados (23 execuções). Na primeira execução, **22 passaram e 1 falhou**: o teste CT-20 expôs um defeito real do sistema (BUG-01, seção 7). O defeito foi **corrigido no código do sistema** em 26/11 e a suíte foi executada de novo no GitHub Actions contra o ambiente dev já com a correção (seção 6).
+**Resumo:** 25 cenários planejados, 20 automatizados (23 execuções). Na primeira execução, **22 passaram e 1 falhou**: o teste CT-20 expôs um defeito real do sistema (BUG-01, seção 7). O defeito foi **corrigido no código do sistema** em 26/11 e, em 27/11, a suíte rodou no GitHub Actions contra o ambiente dev já com a correção e **terminou sem nenhum teste falhando** ([execução no Actions](https://github.com/LuizKirsch/agenda-eletrecista-cypress/actions/runs/46003963096), seção 6).
 
 - **Sistema testado:** aplicação web de agenda e ordens de serviço (React + Express + Sequelize), sistema próprio, diferente dos usados em aula.
 - **Ferramenta principal:** opção B, **Cypress + JavaScript** (a aplicação inteira já é JavaScript, então teste e sistema compartilham linguagem e ferramentas).
@@ -138,7 +138,7 @@ Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-report
 
 **Totais:** 23 execuções, 22 passaram, 1 falhou, 0 puladas. Em quatro execuções seguidas o resultado foi o mesmo, o que mostra que os testes são estáveis e que a falha do CT-20 era reproduzível.
 
-**Depois da correção (26/11/2026):** o BUG-01 foi corrigido no sistema (seção 7) e o ambiente dev recebeu a correção por deploy automático. A suíte roda de novo no GitHub Actions contra o dev; o resultado de cada execução fica na aba **Actions** do repositório, com o resumo dos testes e o artefato `evidencias-e2e`. Nenhum teste foi alterado para acomodar a correção: o CT-20 continua igual e passa a testar o comportamento já corrigido.
+**Execução de confirmação (27/11/2026, GitHub Actions, ambiente dev com a correção):** o BUG-01 foi corrigido no sistema (seção 7) e o ambiente dev recebeu a correção por deploy automático. A suíte completa rodou contra o dev e o passo de testes do workflow terminou com sucesso, sem nenhum teste falhando. Execução: [Actions, run 46003963096](https://github.com/LuizKirsch/agenda-eletrecista-cypress/actions/runs/46003963096). O resumo dos testes aparece na página da execução e o artefato `evidencias-e2e` traz o relatório HTML, os vídeos e o log. Nenhum teste foi alterado para acomodar a correção: o CT-20 continua igual e passa a validar o comportamento já corrigido.
 
 ## 7. Investigação de falha: BUG-01 (busca de cliente)
 
@@ -172,4 +172,4 @@ Cada execução gera:
 
 A suíte cobre os fluxos de maior risco do sistema: acesso e permissões, cadastro e validação de clientes, tipos de atividade e o ciclo de vida da OS com a regra de conflito de horário. Os testes são independentes entre si, montam seus próprios dados e conferem tanto a tela quanto o dado gravado.
 
-O trabalho de automação encontrou um defeito real (BUG-01) que o uso manual não mostrou, e o defeito foi corrigido no sistema. Ficaram para uma próxima fase o fluxo de orçamento até a geração da OS e a remarcação por arrastar e soltar, que pedem uma abordagem própria (seção 2, CN-01 e CN-03).
+O trabalho de automação encontrou um defeito real (BUG-01) que o uso manual não mostrou, e o defeito foi corrigido no sistema e confirmado por uma nova execução. Ficaram para uma próxima fase o fluxo de orçamento até a geração da OS e a remarcação por arrastar e soltar, que pedem uma abordagem própria (seção 2, CN-01 e CN-03).
