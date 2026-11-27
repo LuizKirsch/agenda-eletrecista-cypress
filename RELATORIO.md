@@ -2,7 +2,7 @@
 
 Disciplina de Teste de Software, segunda etapa. Este documento reúne o planejamento, a suíte automatizada, os resultados e a investigação de falha do sistema **Agenda do Eletricista** (projeto da disciplina de Tomada de Decisão). Primeira execução completa em 24/11/2026; correção do defeito encontrado em 26/11/2026; execução de confirmação em 27/11/2026.
 
-**Resumo:** 25 cenários planejados, 20 automatizados (23 execuções). Na primeira execução, **22 passaram e 1 falhou**: o teste CT-20 expôs um defeito real do sistema (BUG-01, seção 7). O defeito foi **corrigido no código do sistema** em 26/11 e, em 27/11, a suíte rodou no GitHub Actions contra o ambiente dev já com a correção e **terminou sem nenhum teste falhando** ([execução no Actions](https://github.com/LuizKirsch/agenda-eletrecista-cypress/actions/runs/46003963096), seção 6).
+**Resumo:** 25 cenários planejados, 20 automatizados (23 execuções). Na primeira execução (24/11), **22 passaram e 1 falhou**: o teste CT-20 expôs um defeito real do sistema (BUG-01, seção 7). O defeito foi **corrigido no código do sistema** em 26/11. Na execução de confirmação (27/11), no GitHub Actions contra o ambiente dev já corrigido, **os 23 testes passaram** ([execução no Actions](https://github.com/LuizKirsch/agenda-eletrecista-cypress/actions/runs/46003963096), seção 6).
 
 - **Sistema testado:** aplicação web de agenda e ordens de serviço (React + Express + Sequelize), sistema próprio, diferente dos usados em aula.
 - **Ferramenta principal:** opção B, **Cypress + JavaScript** (a aplicação inteira já é JavaScript, então teste e sistema compartilham linguagem e ferramentas).
@@ -49,7 +49,7 @@ Prioridade: **A** = risco alto (quebra o uso diário ou a segurança), **M** = m
 | CT-17 | Ordem de serviço | Fim igual ao início | API responde 400 "O horário de fim precisa ser depois do início (1ª atividade)." | M | **Sim** | Validação de entrada do servidor, fora do alcance do formulário |
 | CT-18 | Usuários | Secretária cadastra eletricista e ele consegue entrar | Usuário aparece na tabela e autentica de verdade | A | **Sim** | Teste ponta a ponta de dois módulos (usuários e acesso) |
 | CT-19 | Usuários | Eletricista tenta gerenciar usuários | Tela sem "Novo usuário", editar e excluir; API responde 403 | A | **Sim** | Autorização por perfil: falha aqui é falha de segurança |
-| CT-20 | Busca de cliente | Termo com números não pode trazer quem não corresponde | Só o cliente cujo nome contém o termo | M | **Sim** | Escrito depois de uma falha intermitente investigada (ver seção 7). Falhou na primeira execução e documentou o defeito BUG-01, depois corrigido no sistema |
+| CT-20 | Busca de cliente | Termo com números não pode trazer quem não corresponde | Só o cliente cujo nome contém o termo | M | **Sim** | Escrito depois de uma falha intermitente investigada (ver seção 7). Falhou na primeira execução e documentou o defeito BUG-01; passa depois da correção no sistema |
 | CN-01 | Agenda | Arrastar atividade para remarcar (P1.1) | Atividade muda de dia e hora | A | **Não** (nesta entrega) | O bloco usa `setPointerCapture`, que o Cypress não simula; exigiria eventos de ponteiro artificiais, frágeis. Cobertura parcial: a remarcação é uma chamada de API (`PATCH /atividades-os/:id/horario`), candidata a teste de API |
 | CN-02 | OS | Exportar OS em PDF | Nova aba com a OS pronta para imprimir | B | **Não** | Abre outra aba (`window.open`) e usa o diálogo de impressão do navegador, fora do alcance do Cypress; o ganho não paga o custo |
 | CN-03 | Orçamento | Montar, aceitar e gerar a OS (P4.1, P4.2) | OS criada com os horários escolhidos | A | **Não** (nesta entrega) | Fluxo longo, vários modais e cálculo de horários; ficou para uma segunda fase da suíte. O risco está parcialmente coberto por CT-13 a CT-17 |
@@ -106,39 +106,45 @@ agenda-eletrecista-cypress/
 
 ## 6. Resultados da execução
 
-Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-reporter`.
+Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-reporter`. Duas execuções completas da mesma suíte, sem nenhuma alteração nos testes entre elas:
 
-**Primeira execução (24/11/2026, local, banco SQLite novo, antes da correção do sistema):**
+- **Execução 1, 24/11/2026:** local, banco SQLite novo, sistema ainda com o BUG-01.
+- **Execução 2, 27/11/2026:** GitHub Actions, contra o ambiente dev com a correção do BUG-01 ([execução no Actions](https://github.com/LuizKirsch/agenda-eletrecista-cypress/actions/runs/46003963096)).
 
-| Teste | Tipo | Resultado |
-| --- | --- | --- |
-| CT-01 login válido abre a agenda | positivo | passou |
-| CT-02 credenciais inválidas: senha errada | negativo | passou |
-| CT-02 credenciais inválidas: login inexistente | negativo | passou |
-| CT-03 rota protegida sem sessão | negativo | passou |
-| CT-04 sair encerra a sessão | positivo | passou |
-| CT-05 cadastrar cliente | positivo | passou |
-| CT-06 telefone inválido: poucos dígitos | negativo | passou |
-| CT-06 telefone inválido: DDD começando com zero | negativo | passou |
-| CT-06 telefone inválido: 2º dígito do DDD zero | negativo | passou |
-| CT-07 telefone repetido | negativo | passou |
-| CT-08 busca por nome | positivo | passou |
-| CT-20 busca com números não traz clientes sem relação (BUG-01) | negativo | **falhou** (defeito do sistema) |
-| CT-09 criar tipo de atividade | positivo | passou |
-| CT-10 nome de tipo repetido | negativo | passou |
-| CT-11 duração fora do intervalo | negativo | passou |
-| CT-12 desativar e reativar tipo | positivo | passou |
-| CT-13 concluir atividade pela agenda | positivo | passou |
-| CT-14 conflito de horário | positivo | passou |
-| CT-15 atividades coladas, sem conflito | positivo | passou |
-| CT-16 excluir cliente com OS | negativo | passou |
-| CT-17 horário de fim inválido | negativo | passou |
-| CT-18 cadastrar eletricista e entrar | positivo | passou |
-| CT-19 eletricista sem acesso a usuários | negativo | passou |
+| Teste | Tipo | Execução 1 (antes da correção) | Execução 2 (depois da correção) |
+| --- | --- | --- | --- |
+| CT-01 login válido abre a agenda | positivo | passou | passou |
+| CT-02 credenciais inválidas: senha errada | negativo | passou | passou |
+| CT-02 credenciais inválidas: login inexistente | negativo | passou | passou |
+| CT-03 rota protegida sem sessão | negativo | passou | passou |
+| CT-04 sair encerra a sessão | positivo | passou | passou |
+| CT-05 cadastrar cliente | positivo | passou | passou |
+| CT-06 telefone inválido: poucos dígitos | negativo | passou | passou |
+| CT-06 telefone inválido: DDD começando com zero | negativo | passou | passou |
+| CT-06 telefone inválido: 2º dígito do DDD zero | negativo | passou | passou |
+| CT-07 telefone repetido | negativo | passou | passou |
+| CT-08 busca por nome | positivo | passou | passou |
+| CT-20 busca com números não traz clientes sem relação (BUG-01) | negativo | **falhou** (defeito do sistema) | passou |
+| CT-09 criar tipo de atividade | positivo | passou | passou |
+| CT-10 nome de tipo repetido | negativo | passou | passou |
+| CT-11 duração fora do intervalo | negativo | passou | passou |
+| CT-12 desativar e reativar tipo | positivo | passou | passou |
+| CT-13 concluir atividade pela agenda | positivo | passou | passou |
+| CT-14 conflito de horário | positivo | passou | passou |
+| CT-15 atividades coladas, sem conflito | positivo | passou | passou |
+| CT-16 excluir cliente com OS | negativo | passou | passou |
+| CT-17 horário de fim inválido | negativo | passou | passou |
+| CT-18 cadastrar eletricista e entrar | positivo | passou | passou |
+| CT-19 eletricista sem acesso a usuários | negativo | passou | passou |
 
-**Totais:** 23 execuções, 22 passaram, 1 falhou, 0 puladas. Em quatro execuções seguidas o resultado foi o mesmo, o que mostra que os testes são estáveis e que a falha do CT-20 era reproduzível.
+**Totais:**
 
-**Execução de confirmação (27/11/2026, GitHub Actions, ambiente dev com a correção):** o BUG-01 foi corrigido no sistema (seção 7) e o ambiente dev recebeu a correção por deploy automático. A suíte completa rodou contra o dev e o passo de testes do workflow terminou com sucesso, sem nenhum teste falhando. Execução: [Actions, run 46003963096](https://github.com/LuizKirsch/agenda-eletrecista-cypress/actions/runs/46003963096). O resumo dos testes aparece na página da execução e o artefato `evidencias-e2e` traz o relatório HTML, os vídeos e o log. Nenhum teste foi alterado para acomodar a correção: o CT-20 continua igual e passa a validar o comportamento já corrigido.
+| | Execuções | Passaram | Falharam | Puladas |
+| --- | --- | --- | --- | --- |
+| Execução 1 (24/11) | 23 | 22 | 1 (CT-20) | 0 |
+| Execução 2 (27/11) | 23 | 23 | 0 | 0 |
+
+Na execução 1, o resultado foi o mesmo em quatro repetições seguidas, o que mostra que os testes são estáveis e que a falha do CT-20 era reproduzível. Na execução 2, o passo de testes do workflow terminou com sucesso: o Cypress encerra com erro se qualquer teste falhar, e nenhum teste é pulado nesta suíte. Os vídeos, as capturas e o log de cada execução do Actions ficam no artefato `evidencias-e2e`.
 
 ## 7. Investigação de falha: BUG-01 (busca de cliente)
 
@@ -154,9 +160,9 @@ Ferramenta: **Cypress 16.3.0** (Node.js), relatório `cypress-mochawesome-report
 
 **Tratamento nos testes.** O CT-08 passou a usar um marcador sem dígitos (`marcaSemDigitos`), o que o torna estável e fiel à regra. O comportamento errado ganhou um teste próprio, o **CT-20**, que falhou na primeira execução e documentou o defeito. Evidência da falha: `Too many elements found. Found '2', expected '1'` (captura de tela e vídeo no relatório).
 
-**Correção no sistema (26/11/2026).** Em `services/cliente.service.js`, os dígitos do termo só entram no filtro de telefone quando o termo inteiro parece um telefone (apenas dígitos, espaço, parênteses, `+` e `-`, conferido por `/^[\d\s()+-]+$/`). Um termo como "Apto 77" passa a buscar só no nome; "(51) 9777" e "51977" continuam achando pelo telefone. Commit `8f33034` na branch `develop` do repositório do sistema, publicado no ambiente dev pelo deploy automático.
+**Correção no sistema (26/11/2026).** Em `services/cliente.service.js`, os dígitos do termo só entram no filtro de telefone quando o termo inteiro parece um telefone (apenas dígitos, espaço, parênteses, `+` e `-`, conferido por `/^[\d\s()+-]+$/`). Um termo como "Apto 77" passa a buscar só no nome; "(51) 9777" e "51977" continuam achando pelo telefone. Commit `8f33034` na branch `develop` do repositório do sistema, publicado no ambiente dev pelo deploy automático. Depois disso, o CT-20 passou sem nenhuma mudança no teste (seção 6).
 
-A captura de tela da falha original fica no relatório HTML da primeira execução e, no GitHub Actions, no artefato `evidencias-e2e` de cada execução.
+A captura de tela da falha original fica no relatório HTML da primeira execução.
 
 ## 8. Evidências de execução
 
@@ -172,4 +178,4 @@ Cada execução gera:
 
 A suíte cobre os fluxos de maior risco do sistema: acesso e permissões, cadastro e validação de clientes, tipos de atividade e o ciclo de vida da OS com a regra de conflito de horário. Os testes são independentes entre si, montam seus próprios dados e conferem tanto a tela quanto o dado gravado.
 
-O trabalho de automação encontrou um defeito real (BUG-01) que o uso manual não mostrou, e o defeito foi corrigido no sistema e confirmado por uma nova execução. Ficaram para uma próxima fase o fluxo de orçamento até a geração da OS e a remarcação por arrastar e soltar, que pedem uma abordagem própria (seção 2, CN-01 e CN-03).
+O trabalho de automação encontrou um defeito real (BUG-01) que o uso manual não mostrou. O defeito foi corrigido no sistema e a suíte passou por inteiro (23 de 23) em nova execução. Ficaram para uma próxima fase o fluxo de orçamento até a geração da OS e a remarcação por arrastar e soltar, que pedem uma abordagem própria (seção 2, CN-01 e CN-03).
