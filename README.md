@@ -48,7 +48,9 @@ Para ver os testes rodando na interface do Cypress, em dois terminais: `npm run 
 
 ## Resultado esperado
 
-**22 testes passam e 1 falha.** A falha é o **CT-20**, de propósito: ele documenta um defeito real da busca de clientes do sistema (BUG-01, detalhes no relatório, seção 7). Quando o defeito for corrigido em `services/cliente.service.js` e a correção chegar ao ambiente dev, a suíte inteira fica verde.
+**Os 23 testes passam**, desde que o ambiente testado tenha a correção do BUG-01.
+
+O **CT-20** cobre esse defeito da busca de clientes (detalhes no relatório, seção 7). Na primeira execução, em 24/11, ele falhou de verdade (22 passaram e 1 falhou). O defeito foi corrigido em `services/cliente.service.js` no repositório do sistema (commit `8f33034`, branch `develop`) e chegou ao ambiente dev pelo deploy automático. Contra um ambiente sem a correção, o CT-20 volta a falhar.
 
 ## Variáveis
 
